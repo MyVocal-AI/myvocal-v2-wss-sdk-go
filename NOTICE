@@ -1,0 +1,19 @@
+MyVocal V2 Bidirectional WebSocket TTS SDKs
+Copyright 2026 MyVocal AI
+
+Licensed under the Apache License, Version 2.0.
+
+Third-party runtime components:
+
+- websockets 12.x-15.x, BSD 3-Clause License
+  https://github.com/python-websockets/websockets
+- OkHttp 3.14.9 and Okio 1.17.2, Apache License 2.0
+  https://square.github.io/okhttp/
+- JSON-java 20231013, public-domain dedication
+  https://github.com/stleary/JSON-java
+- gorilla/websocket 1.5.3, BSD 2-Clause License
+  https://github.com/gorilla/websocket
+
+Test-only components include pytest, pytest-asyncio, JUnit, and
+MockWebServer. Their license terms remain available from their respective
+projects and package metadata.
