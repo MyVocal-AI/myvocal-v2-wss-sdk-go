@@ -1,75 +1,57 @@
 # MyVocal V2 WebSocket TTS SDK for Go
 
-Idiomatic Go 1.22+ client for the MyVocal V2 bidirectional WebSocket TTS
-endpoint.
+Stream text to speech with `Skyblight-Turbo`. Requires Go 1.22 or later, an enterprise TTS API Key with dedicated concurrency, and a voice ID.
 
 ## Install
 
-From the downloaded ZIP, either run the included example directly:
+From your application's Go module:
+
+```bash
+go get github.com/MyVocal-AI/myvocal-v2-wss-sdk-go@v1.0.2
+```
+
+To use the [downloadable ZIP](https://github.com/MyVocal-AI/myvocal-v2-wss-sdk-go/releases/tag/v1.0.2), extract it beside your application and add these entries to your application's `go.mod`:
+
+```go
+require github.com/MyVocal-AI/myvocal-v2-wss-sdk-go v1.0.2
+
+replace github.com/MyVocal-AI/myvocal-v2-wss-sdk-go => ../myvocal-v2-wss-go-sdk-1.0.2
+```
+
+Adjust the path to your extracted folder, then run `go mod tidy`.
+
+## Run the example
+
+Set your API Key and voice ID:
+
+```bash
+export MYVOCAL_TTS_API_KEY='YOUR_API_KEY'
+export MYVOCAL_VOICE_ID='YOUR_VOICE_ID'
+```
+
+PowerShell:
+
+```powershell
+$env:MYVOCAL_TTS_API_KEY='YOUR_API_KEY'
+$env:MYVOCAL_VOICE_ID='YOUR_VOICE_ID'
+```
+
+From the extracted SDK folder:
 
 ```bash
 go run ./examples/basic
 ```
 
-Or reference the extracted SDK from an application `go.mod`:
+Running the example makes a real synthesis request and consumes character usage. It prints the final audio byte count and close code. To save or play audio, use the callbacks or the completed audio result described in the usage guide.
 
-```text
-require github.com/MyVocal-AI/myvocal-v2-wss-sdk-go v0.0.0
-replace github.com/MyVocal-AI/myvocal-v2-wss-sdk-go => ../myvocal-v2-wss-go-sdk-1.0.1
-```
+## Use in your application
 
-After the GitHub release is published:
+Connect, start a task, send text fragments, and call finish. Finish waits for `task_finished` and Close Code `1000`. Sentence-end events and individual audio-final flags do not indicate completion of the whole task.
 
-```bash
-go get github.com/MyVocal-AI/myvocal-v2-wss-sdk-go@v1.0.1
-```
+- [Usage guide](USAGE.md): options, audio callbacks, subtitles, cancellation, timeouts, and errors.
+- [API reference](https://api-docs.myvocal.ai/3891085w0): request and response messages.
+- [Character usage](https://api-docs.myvocal.ai/336818975e0).
 
-## Example
+The SDK does not automatically replay submitted text after a connection failure.
 
-```go
-ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
-defer cancel()
-
-client := myvocalwss.NewClient(
-    myvocalwss.DefaultEndpoint,
-    os.Getenv("MYVOCAL_TTS_API_KEY"),
-    myvocalwss.Handlers{},
-)
-defer client.Close()
-
-if err := client.Connect(ctx); err != nil {
-    log.Fatal(err)
-}
-if err := client.Start(ctx, myvocalwss.StartRequest{
-    Voice:        os.Getenv("MYVOCAL_VOICE_ID"),
-    Language:     "en",
-    Format:       myvocalwss.FormatMP3,
-    SubtitleType: myvocalwss.SubtitleWordStreaming,
-    SessionID:    "go-example-001",
-}); err != nil {
-    log.Fatal(err)
-}
-if err := client.SendText("Hello from MyVocal."); err != nil {
-    log.Fatal(err)
-}
-if err := client.Flush(ctx); err != nil {
-    log.Fatal(err)
-}
-result, err := client.Finish(ctx)
-if err != nil {
-    log.Fatal(err)
-}
-log.Printf("audio_bytes=%d close_code=%d", len(result.Audio), result.CloseCode)
-```
-
-The client sends `API-Key` only in the WebSocket handshake, validates the
-documented request fields, decodes ordered hex audio, and treats
-`task_finished` followed by close code `1000` as normal completion.
-
-Handlers run synchronously on the WebSocket reader and preserve event order.
-Keep them short. Handler panics are recovered and reported to `OnError`
-without changing the TTS protocol result.
-
-## License
-
-Apache License 2.0. See `LICENSE` and `NOTICE` in the SDK package.
+Licensed under [Apache License 2.0](LICENSE). Dependency notices are in [NOTICE](NOTICE).
